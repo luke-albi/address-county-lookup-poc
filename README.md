@@ -2,6 +2,8 @@
 
 A proof-of-concept application that provides address autocomplete and returns the county information for any US address.
 
+⚠️ **SECURITY NOTE**: Never commit API keys to Git. Always use environment variables or configuration files that are gitignored.
+
 ## Features
 
 - **Address Autocomplete**: Real-time address suggestions as you type
@@ -19,14 +21,42 @@ A proof-of-concept application that provides address autocomplete and returns th
    - Places API
    - Geocoding API
 4. Create credentials (API Key)
-5. Restrict the API key to your domain (optional but recommended)
+5. **IMPORTANT**: Restrict the API key:
+   - Set HTTP referrer restrictions to your domain
+   - Restrict API access to only Places API and Geocoding API
+   - Consider setting usage quotas to prevent abuse
 
 ### 2. Configure API Key
 
-Open `index.html` and replace `YOUR_API_KEY_HERE` with your actual API key:
+**Option 1: Direct in HTML (for local testing only)**
+
+Open `index.html` and replace `YOUR_API_KEY_HERE` with your actual API key on line 253:
 
 ```html
 <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_ACTUAL_API_KEY&libraries=places&callback=initAutocomplete" async defer></script>
+```
+
+⚠️ **WARNING**: Never commit this file with a real API key to version control!
+
+**Option 2: Use config.js (Recommended)**
+
+1. Create a `config.js` file (this is gitignored):
+```javascript
+const GOOGLE_API_KEY = 'YOUR_ACTUAL_API_KEY';
+```
+
+2. Update `index.html` to load config:
+```html
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+  // Load Google Maps with key from config
+  const script = document.createElement('script');
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places&callback=initAutocomplete`;
+  script.async = true;
+  script.defer = true;
+  document.head.appendChild(script);
+</script>
 ```
 
 ### 3. Run the Application
@@ -47,6 +77,23 @@ Then open: http://localhost:8000
 - Install "Live Server" extension
 - Right-click `index.html`
 - Select "Open with Live Server"
+
+## Security Best Practices
+
+1. **Never commit API keys to Git**
+   - Use `.gitignore` to exclude config files
+   - Use environment variables in production
+   - Rotate keys immediately if exposed
+
+2. **Restrict your API key in Google Cloud Console**
+   - Set HTTP referrer restrictions
+   - Enable only required APIs
+   - Set daily quotas to prevent abuse
+
+3. **If your key was exposed**
+   - Immediately revoke it in Google Cloud Console
+   - Generate a new key with proper restrictions
+   - Check billing for unexpected usage
 
 ## How It Works
 
@@ -98,7 +145,7 @@ postal_code = Zip Code (e.g., "90210")
    - Good autocomplete
    - Requires API key
 
-3. **US Census Geocoder**
+3. **US Census Geocoder** (See `index-simple.html`)
    - Free for US addresses
    - No autocomplete
    - Government-maintained
@@ -113,8 +160,10 @@ postal_code = Zip Code (e.g., "90210")
 
 ```
 address-county-lookup-poc/
-├── index.html          # Main HTML with UI and styles
+├── index.html          # Main HTML with UI and styles (Google version)
+├── index-simple.html   # Simple version using US Census API (no key needed)
 ├── app.js              # JavaScript logic for autocomplete and lookup
+├── .gitignore          # Git ignore file (excludes API keys)
 └── README.md           # This file
 ```
 
@@ -128,7 +177,7 @@ address-county-lookup-poc/
 ## Next Steps / Improvements
 
 - [ ] Add support for international addresses
-- [ ] Implement fallback to free geocoding APIs
+- [ ] Implement backend proxy to hide API key
 - [ ] Add map visualization
 - [ ] Cache results to reduce API calls
 - [ ] Add ability to copy county name
@@ -139,3 +188,10 @@ address-county-lookup-poc/
 ## License
 
 MIT - Free to use for any purpose
+
+## ⚠️ Important Reminders
+
+- **NEVER commit API keys to public repositories**
+- Always use `.gitignore` for sensitive configuration
+- Rotate keys immediately if accidentally exposed
+- Use API restrictions to minimize damage from exposed keys

@@ -1,0 +1,7 @@
+# Environment variables with API keys
+.env
+.env.local
+config.js
+
+# API keys file
+api-keys.js
