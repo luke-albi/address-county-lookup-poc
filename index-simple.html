@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Address County Lookup POC - Simple Version</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f5f5f5;
+            transition: background 0.2s;
+        }
+
+        .autocomplete-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 20px;
+            display: none;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-card.show {
+            display: block;
+        }
+
+        .result-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .result-value {
+            color: white;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .address-details {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            color: white;
+            font-size: 14px;
+        }
+
+        .detail-label {
+            opacity: 0.8;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .error {
+            background: #ff4757;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            color: #667eea;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .powered-by {
+            text-align: center;
+            margin-top: 30px;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ Address County Lookup</h1>
+        <p class="subtitle">Simple version using US Census Geocoder (No API key required)</p>
+
+        <div class="note">
+            ⚠️ This version uses the free US Census Geocoder. For better autocomplete, set up the Google version with an API key.
+        </div>
+
+        <div class="input-group">
+            <label for="street">Street Address</label>
+            <input type="text" id="street" placeholder="e.g., 1600 Pennsylvania Ave NW">
+        </div>
+
+        <div class="input-group">
+            <label for="city">City</label>
+            <input type="text" id="city" placeholder="e.g., Washington">
+        </div>
+
+        <div class="input-group">
+            <label for="state">State</label>
+            <input type="text" id="state" placeholder="e.g., DC" maxlength="2">
+        </div>
+
+        <div class="input-group">
+            <label for="zip">Zip Code</label>
+            <input type="text" id="zip" placeholder="e.g., 20500" maxlength="5">
+        </div>
+
+        <button onclick="lookupCounty()">Find County</button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Looking up county information...</p>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="result-card" id="result-card">
+            <div class="result-label">County</div>
+            <div class="result-value" id="county-name">—</div>
+
+            <div class="address-details">
+                <div class="detail-row">
+                    <span class="detail-label">Matched Address</span>
+                    <span class="detail-value" id="matched-address">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">City</span>
+                    <span class="detail-value" id="result-city">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">State</span>
+                    <span class="detail-value" id="result-state">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Zip Code</span>
+                    <span class="detail-value" id="result-zip">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Coordinates</span>
+                    <span class="detail-value" id="coordinates">—</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="powered-by">
+            Powered by US Census Bureau Geocoder (Free)
+        </div>
+    </div>
+
+    <script>
+        async function lookupCounty() {
+            const street = document.getElementById('street').value.trim();
+            const city = document.getElementById('city').value.trim();
+            const state = document.getElementById('state').value.trim().toUpperCase();
+            const zip = document.getElementById('zip').value.trim();
+
+            if (!street || !city || !state) {
+                showError('Please fill in street, city, and state');
+                return;
+            }
+
+            showLoading(true);
+            hideError();
+            hideResult();
+
+            try {
+                // Use US Census Geocoder API (free, no key required)
+                const address = `${street}, ${city}, ${state}${zip ? ' ' + zip : ''}`;
+                const url = `https://geocoding.geo.census.gov/geocoder/geographies/address?` +
+                    `street=${encodeURIComponent(street)}&` +
+                    `city=${encodeURIComponent(city)}&` +
+                    `state=${encodeURIComponent(state)}${zip ? '&zip=' + zip : ''}&` +
+                    `benchmark=Public_AR_Current&vintage=Current_Current&layers=all&format=json`;
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.result.addressMatches && data.result.addressMatches.length > 0) {
+                    const match = data.result.addressMatches[0];
+                    const county = match.geographies?.['Counties']?.[0]?.NAME ||
+                                 match.geographies?.['2020 Census Blocks']?.[0]?.COUNTY ||
+                                 'Not found';
+
+                    displayResult({
+                        county: county,
+                        matchedAddress: match.matchedAddress,
+                        city: match.addressComponents.city,
+                        state: match.addressComponents.state,
+                        zip: match.addressComponents.zip,
+                        lat: match.coordinates.y,
+                        lon: match.coordinates.x
+                    });
+                } else {
+                    showError('Address not found. Please check your input and try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Unable to lookup address. Please try again.');
+            }
+
+            showLoading(false);
+        }
+
+        function displayResult(data) {
+            document.getElementById('county-name').textContent = data.county;
+            document.getElementById('matched-address').textContent = data.matchedAddress || '—';
+            document.getElementById('result-city').textContent = data.city || '—';
+            document.getElementById('result-state').textContent = data.state || '—';
+            document.getElementById('result-zip').textContent = data.zip || '—';
+            document.getElementById('coordinates').textContent =
+                `${data.lat.toFixed(6)}, ${data.lon.toFixed(6)}`;
+
+            document.getElementById('result-card').classList.add('show');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        function hideError() {
+            document.getElementById('error').classList.remove('show');
+        }
+
+        function hideResult() {
+            document.getElementById('result-card').classList.remove('show');
+        }
+
+        function showLoading(show) {
+            if (show) {
+                document.getElementById('loading').classList.add('show');
+            } else {
+                document.getElementById('loading').classList.remove('show');
+            }
+        }
+
+        // Allow Enter key to submit
+        ['street', 'city', 'state', 'zip'].forEach(id => {
+            document.getElementById(id).addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    lookupCounty();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
