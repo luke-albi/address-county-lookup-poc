@@ -1,0 +1,21 @@
+{
+  "name": "address-county-lookup-poc",
+  "version": "1.0.0",
+  "description": "Address autocomplete with county lookup - secure backend proxy version",
+  "main": "index-vercel.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "address",
+    "county",
+    "geocoding",
+    "google-maps"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "vercel": "^33.0.0"
+  }
+}

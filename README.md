@@ -61,19 +61,52 @@ const GOOGLE_API_KEY = 'YOUR_ACTUAL_API_KEY';
 
 ### 3. Run the Application
 
-#### Option 1: Simple HTTP Server (Python)
+#### Option 1: Backend Proxy (Recommended for Production)
+
+Deploy to Vercel with secure backend proxy that hides your API key:
+
+1. **Install Vercel CLI**:
+```bash
+npm install -g vercel
+```
+
+2. **Set up environment variable**:
+```bash
+vercel env add GOOGLE_API_KEY
+# Paste your API key when prompted
+```
+
+3. **Deploy**:
+```bash
+vercel --prod
+```
+
+4. **Local development with proxy**:
+```bash
+npm install
+vercel dev
+```
+Then open: http://localhost:3000/index-vercel.html
+
+**Benefits**:
+- ✅ API key stays secure on the server
+- ✅ No restrictions needed on the API key
+- ✅ Works on any public domain
+- ✅ Better for production use
+
+#### Option 2: Simple HTTP Server (Python)
 ```bash
 python3 -m http.server 8000
 ```
 Then open: http://localhost:8000
 
-#### Option 2: Node.js HTTP Server
+#### Option 3: Node.js HTTP Server
 ```bash
 npx http-server -p 8000
 ```
 Then open: http://localhost:8000
 
-#### Option 3: VS Code Live Server
+#### Option 4: VS Code Live Server
 - Install "Live Server" extension
 - Right-click `index.html`
 - Select "Open with Live Server"
@@ -160,9 +193,19 @@ postal_code = Zip Code (e.g., "90210")
 
 ```
 address-county-lookup-poc/
-├── index.html          # Main HTML with UI and styles (Google version)
+├── index.html          # Main HTML with UI and styles (Google version with config.js)
+├── index-vercel.html   # Vercel version with backend proxy (most secure)
 ├── index-simple.html   # Simple version using US Census API (no key needed)
-├── app.js              # JavaScript logic for autocomplete and lookup
+├── app.js              # JavaScript logic for autocomplete and lookup (client-side)
+├── app-proxy.js        # JavaScript for backend proxy version
+├── config.js           # Local API key config (gitignored, create manually)
+├── api/
+│   ├── autocomplete.js    # Vercel serverless function for Places API
+│   ├── place-details.js   # Vercel serverless function for Place Details API
+│   └── geocode.js         # Vercel serverless function for Geocoding API
+├── package.json        # Node.js dependencies and scripts
+├── vercel.json         # Vercel deployment configuration
+├── .env.example        # Example environment variables file
 ├── .gitignore          # Git ignore file (excludes API keys)
 └── README.md           # This file
 ```
